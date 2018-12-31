@@ -12,7 +12,7 @@ npm run build
 extension project is built using ngc (with skipTemplateCodegen set to 'false') + RollupJs, and generates bundled JavaScript file in UMD format.
 This UMD is then loaded by platform application at runtime, using Angular lazy loaded modules concept. All the dependencies are provided using global variables.
 For list of dependencies (provided as global variables) see 'platform/system.modules.json'.
-To see how RollupJs uses 'platform/system.modules.json', see 'extension/rollup.config.js'
+To see how RollupJs uses '**platform/system.modules.json**', see '**extension/rollup.config.js**'
 
 ## Running (platform) application
 ---------------------------------
