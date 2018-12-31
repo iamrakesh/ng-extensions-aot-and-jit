@@ -140,6 +140,6 @@ export class ExtensionInfoService {
 ```
 
 ## Know issues
-1. When the extension module 'SampleExtModule' imports 'AnotherModule' with 'entryComponents'; generated UMD contains factories for all these entry components
+1. When the extension module 'SampleExtModule' imports 'AnotherModule' with 'entryComponents'; generated UMD contains factories for all these entry components. **You can see this in platform/assets/sample-ext.module.umd.js**
 2. Component factories for entryComponents in the generated UMD for extension means all thier styles are also included. If you are using SCSS and platform also shared SCSS framework to other extensions, each change in platform styles needs possible re-build of extensions.
 3. More ???
