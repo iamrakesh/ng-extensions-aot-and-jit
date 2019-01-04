@@ -1,4 +1,4 @@
-# ng-extensions
+# ng-extensions-aot-and-jit
 Basic implementation of dynamic extension loading concept using Angular. This implementation is a variant of [ng-extensions](https://github.com/iamrakesh/ng-extensions)
 
 |   | ng-extensions | ng-extensions-aot-and-jit |
@@ -86,6 +86,11 @@ To fix this situation we disable build optmizer while building container applica
               "buildOptimizer": false,
               ...
 ```
+
+See below Angular issues for more information about this
+* https://github.com/angular/angular/issues/20875
+* https://github.com/angular/angular/issues/23284
+* https://github.com/angular/angular-cli/issues/9306
 
 #### Exported dependencies (as global variables)
 All dependencies (Angular modules) needed by extensions are made available to them using global variables. All of these global variables are prepared by 'exportSystemModules' function, which can be seen in 'platform/src/app/extensions/system-modules.ts'.
