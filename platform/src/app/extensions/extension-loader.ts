@@ -1,5 +1,12 @@
-import { Compiler, Injectable, Optional, SystemJsNgModuleLoader, SystemJsNgModuleLoaderConfig } from '@angular/core';
-import { NgModuleFactory } from '@angular/core/src/render3';
+import {
+  Compiler,
+  Injectable,
+  ModuleWithComponentFactories,
+  NgModuleFactory,
+  Optional,
+  SystemJsNgModuleLoader,
+  SystemJsNgModuleLoaderConfig,
+} from '@angular/core';
 import { ExtensionInfoService } from './extension-info.service';
 import { IExtension } from './i-extension';
 
@@ -7,10 +14,6 @@ import { IExtension } from './i-extension';
  * constant containing URL segments separator
  */
 const _SEPARATOR = '#';
-/**
- * constant holding angular factory class name suffix string.
- */
-const FACTORY_CLASS_SUFFIX = 'NgFactory';
 
 /**
  * Lazy module loader implementation extending for Angular's default module loader {@link SystemJsNgModuleLoader},
@@ -23,8 +26,8 @@ export class ExtensionLoader extends SystemJsNgModuleLoader {
   /**
    * Creates an instance of ExtensionLoader.
    */
-  constructor(private extensionInfoService: ExtensionInfoService, aCompiler: Compiler, @Optional() aConfig?: SystemJsNgModuleLoaderConfig) {
-    super(aCompiler, aConfig);
+  constructor(private extensionInfoService: ExtensionInfoService, private compiler: Compiler, @Optional() aConfig?: SystemJsNgModuleLoaderConfig) {
+    super(compiler, aConfig);
   }
 
   /**
@@ -45,12 +48,6 @@ export class ExtensionLoader extends SystemJsNgModuleLoader {
   private loadModuleFactory(aPath: string): Promise<NgModuleFactory<any>> {
     let [modulePath, exportName, isBundle] = aPath.split(_SEPARATOR);
 
-    let factoryClassSuffix = FACTORY_CLASS_SUFFIX;
-    if (exportName === undefined) {
-      exportName = 'default';
-      factoryClassSuffix = '';
-    }
-
     if (!isBundle) {
       return super.load(aPath);
     }
@@ -58,8 +55,14 @@ export class ExtensionLoader extends SystemJsNgModuleLoader {
     return this.extensionInfoService
       .getExtensionByNgModuleName(exportName)
       .then((aExtensionInfo: IExtension): Promise<any> => importScript(aExtensionInfo))
-      .then((aExtModule: any) => aExtModule[exportName + factoryClassSuffix])
+      .then((aExtModule: any) => this.getModuleFactory(aExtModule, exportName))
       .then((aModuleFactory: any) => checkNotEmpty(aModuleFactory, modulePath, exportName));
+  }
+
+  private getModuleFactory(aModule: any, aNgModuleName: string): any {
+    let moduleWithComponentFactories: ModuleWithComponentFactories<any> = this.compiler.compileModuleAndAllComponentsSync(aModule);
+    this.extensionInfoService.setComponentFactories(aNgModuleName, moduleWithComponentFactories);
+    return moduleWithComponentFactories.ngModuleFactory;
   }
 }
 
@@ -75,7 +78,7 @@ function importScript(aExtensionInfo: IExtension) {
 
 function doImportScript(aUrl: string, aNgModuleName: string, aResolve: Function, aReject: Function): Promise<any> {
   if (document.getElementById(aNgModuleName)) {
-    return aResolve(window[aNgModuleName]);
+    return aResolve(window[aNgModuleName][aNgModuleName]);
   }
 
   // load given umd module script
@@ -84,7 +87,7 @@ function doImportScript(aUrl: string, aNgModuleName: string, aResolve: Function,
   script.src = aUrl;
 
   script.onload = function(aEvent: Event) {
-    aResolve(window[aNgModuleName]);
+    aResolve(window[aNgModuleName][aNgModuleName]);
   };
 
   script.onerror = function(aEvent: ErrorEvent) {
